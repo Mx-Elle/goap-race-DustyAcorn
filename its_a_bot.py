@@ -66,7 +66,7 @@ class Bot:
 
 #do you need to say self.track or just track
     def goap_target(self, player_loc: Point, track: RaceTrack):
-        explored_states = []
+        explored_states: set[frozenset[Point]] = set()
         goal_state = None
         current_state, avalible_buttons, goal = self.flood_fill(player_loc, track)
         child_states = [(current_state, avalible_buttons, goal, track)]
@@ -78,19 +78,23 @@ class Bot:
         else:
             while not goal and child_states:
                 current_state, avalible_buttons, goal, track = child_states.pop(0)
+                current_frozen = frozenset(current_state)
+                explored_states.add(current_frozen)
+                
                 for avalible_button in avalible_buttons:
                     color = track.button_colors[avalible_button]
                     new_track = self.board_copy(color, track)
                     new_state, new_avalible_buttons, new_goal = self.flood_fill(player_loc, new_track)
-                    if new_state in explored_states:
+                    new_frozen = frozenset(new_state)
+                    if new_frozen in explored_states:
                         continue
-                    prev[frozenset(new_state)] = (frozenset(current_state), avalible_button)
+                    prev[new_frozen] = (current_frozen, avalible_button)
                     if new_goal:
                         goal_state = new_state
                         goal = True
                         break
                     child_states.append((new_state, new_avalible_buttons, new_goal, new_track))
-                explored_states.append(current_state)
+                
             
             if goal_state is None:
                 return []
