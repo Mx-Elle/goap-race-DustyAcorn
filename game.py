@@ -13,7 +13,7 @@ import traceback
 from its_a_bot import bad_move
 
 
-TRACK = load_track("./tracks/simple_button.pkl")
+TRACK = load_track("./tracks/options.pkl")
 # PLAYER = random_move
 PLAYER = bad_move
 REPLAY_SPEED = 0.1  # seconds per move in the replay. (lower is faster)
