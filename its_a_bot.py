@@ -69,7 +69,7 @@ class Bot:
         explored_states = []
         goal_state = None
         current_state, avalible_buttons, goal = self.flood_fill(player_loc, track)
-        child_states = [(current_state, avalible_buttons, goal)]
+        child_states = [(current_state, avalible_buttons, goal, track)]
         start_state = frozenset(current_state)
 #(previous_state, button)
         prev: dict[frozenset[Point], tuple[frozenset, Point]] = {}
@@ -77,7 +77,7 @@ class Bot:
             return [track.target]
         else:
             while not goal and child_states:
-                current_state, avalible_button, goal = child_states.pop(0)
+                current_state, avalible_buttons, goal, track = child_states.pop(0)
                 for avalible_button in avalible_buttons:
                     color = track.button_colors[avalible_button]
                     new_track = self.board_copy(color, track)
@@ -89,7 +89,7 @@ class Bot:
                         goal_state = new_state
                         goal = True
                         break
-                    child_states.append((new_state, new_avalible_buttons, new_goal))
+                    child_states.append((new_state, new_avalible_buttons, new_goal, new_track))
                 explored_states.append(current_state)
             
             if goal_state is None:
@@ -112,12 +112,13 @@ class Bot:
         #this includes the coordinate and the color in the form (border_coord, color_of_border_coord)
         frontiers = [start_location]
 
+        safe = track.find_traversable_cells()
+
         while frontiers:
             current_cell = heapq.heappop(frontiers)
             if current_cell == track.target:
                 goal = True
 
-            safe = track.find_traversable_cells()
             options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
             neighbors = {opt: (current_cell[0] + opt[0], current_cell[1] + opt[1]) for opt in options}
 
@@ -130,8 +131,9 @@ class Bot:
                     unsafe_options.append((opt, coord))
 
             for neighbor in safe_options:
-                if current_cell in button_locations and current_cell not in start_location:
-                    buttons_in_state.append(current_cell)
+                if current_cell in button_locations and current_cell != start_location:
+                    if current_cell not in buttons_in_state:
+                        buttons_in_state.append(current_cell)
                     break
                 _, move_coord = neighbor
                 if move_coord in closed_list:
@@ -148,10 +150,10 @@ class Bot:
         if loc == self.target and self.path:
             self.target = self.path.pop(0)
         if self.target == None:
-            print("this is very bad")
+            print("Aaaaaa")
             self.path = self.goap_target(loc, track)
-            print(f'if theres nothing here youre screwed {self.path}')
             if self.path:
+                print("Aaaaaa")
                 self.target = self.path.pop(0)
                 print(self.target)
 
@@ -163,6 +165,7 @@ class Bot:
         #still no target?
         if self.target is None:
             #last ditch effort
+            print("ur COOKED")
             move, _  = random.choice(safe_options)
             return move
         strip = self.astar(loc, self.target, track)[1:]
